@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<title></title>
+<style>
+body{margin:0;padding:0;overflow:hidden;}
+html, body{height:100%;}
+</style>
+<script type="text/javascript" src="math.custom.min.js"></script>
+<script type="text/javascript" src="matinfio.min.js"></script>
+<script type="text/javascript" src="ChemDoodleWeb.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+if (!window.math || !window.MatinfIO) throw new Error("Failed to load requirements");
+
+const logger = {warning: alert.bind(window), error: alert.bind(window)};
+const converter = window.MatinfIO(window.math, logger);
+//const sample = '{"attributes":{"immutable_id":"x","species_at_sites":["Au"],"cartesian_site_positions":[[0,0,0]],"lattice_vectors":[[0,2,2],[2,0,2],[2,2,0]]}}';
+
+function process_data(input){
+
+    const cifdata = converter.to_cif(input);
+    if (!cifdata) return;
+
+    const cif = ChemDoodle.readCIF(cifdata, 1, 1, 1);
+    const crystalTransformer = new ChemDoodle.TransformCanvas3D('ribbonTransformer', window.innerWidth, window.innerHeight);
+    crystalTransformer.specs.set3DRepresentation('Ball and Stick');
+    crystalTransformer.specs.backgroundColor = '#ffffff';
+    crystalTransformer.specs.projectionPerspective_3D = false;
+    crystalTransformer.specs.atoms_displayLabels_3D = true;
+    crystalTransformer.specs.crystals_unitCellLineWidth = 1;
+    crystalTransformer.specs.shapes_color = 'black';
+    crystalTransformer.specs.shapes_lineWidth = 1;
+    crystalTransformer.loadContent([cif.molecule], [cif.unitCell]);
+}
+
+// iframe integration:
+// - via postMessage interface
+
+window.addEventListener('message', function(event){
+    const target_data = event.data;
+    try {
+        target_data = JSON.parse(event.data); // do we receive a JSON-object or a JSON-string?
+    } catch (e){}
+
+    process_data(JSON.stringify(target_data));
+});
+
+// warm-up void call
+const crystalTransformer = new ChemDoodle.TransformCanvas3D('ribbonTransformer', window.innerWidth, window.innerHeight);
+crystalTransformer.loadContent([], []);
+//process_data(sample);
+</script>
+</body>
+</html>
