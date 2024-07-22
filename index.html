@@ -42,7 +42,7 @@ function process_data(input){
 // - via postMessage interface
 
 window.addEventListener('message', function(event){
-    const target_data = event.data;
+    let target_data = event.data;
     try {
         target_data = JSON.parse(event.data); // do we receive a JSON-object or a JSON-string?
     } catch (e){}
